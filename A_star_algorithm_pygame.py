@@ -1,4 +1,5 @@
 import numpy as np
+from queue import PriorityQueue
 
 class Quadrant:
     def __init__(self, x, y):
@@ -10,6 +11,7 @@ class Quadrant:
         self._g_score = np.inf
         self._h_score = np.inf
         self._f_score = np.inf
+        self._children = []
 
     def get_coords(self):
         return (self._x, self._y)
@@ -49,8 +51,19 @@ class Quadrant:
         self._end = False
         self._barrier = False
 
-    def get_children(self, grid):
-        children = []
+    def get_children(self, grid, grid_size):
+        if ((self._x + 1) < grid_size) and not(grid[self._x+1][self._y].is_barrier):
+            self._children.append(grid[self._x+1][self._y])
+
+        if ((self._x + - 1) < - 1) and not(grid[self._x-1][self._y].is_barrier):
+            self._children.append(grid[self._x+1][self._y])
+
+        if ((self._y + 1) < grid_size) and not(grid[self._x][self._y+1].is_barrier):
+            self._children.append(grid[self._x][self._y+1])
+
+        if ((self._y - 1) < - 1) and not(grid[self._x][self._y-1].is_barrier):
+            self._children.append(grid[self._x][self._y-1])
+
 
 def heuristic(end, quad):
     """
@@ -65,18 +78,25 @@ def heuristic(end, quad):
     end_x, end_y = end.get_coords()
     return (abs(quad_x - end_x) + abs(quad_y - end_y))
 
-        
-def create_grid():
+
+def create_grid(grid_size):
     grid = []
-    for i in range(5):
+    for i in range(grid_size):
         grid.append([])
-        for j in range(5):
+        for j in range(grid_size):
             grid[i].append(Quadrant(i, j))
 
     return grid
 
+
+def algorithm():
+    queue = PriorityQueue()
+    closed_list = []
+
+
 def main():
-    grid = create_grid()
+    grid_size = 5
+    grid = create_grid(grid_size)
 
     start = grid[0][0]
     end = grid[4][4]

@@ -1,7 +1,7 @@
 import numpy as np
 from queue import PriorityQueue
 
-class Quadrant:
+class Node:
     def __init__(self, x, y):
         self._x = x
         self._y = y
@@ -32,8 +32,8 @@ class Quadrant:
     def set_g_score(self, value):
         self._g_score = value
 
-    def set_parent(self, quad):
-        self._parent = quad
+    def set_parent(self, node):
+        self._parent = node
     
     def set_start(self):
         if not(self._end):
@@ -52,7 +52,7 @@ class Quadrant:
         if not(self._start) and not(self._end):
             self._barrier = True
         else:
-            return "Quadrant is start or end node"
+            return "Node is start or end node"
         
     def is_start(self):
         return self._start
@@ -67,49 +67,49 @@ class Quadrant:
         self._start = False
         self._end = False
         self._barrier = False
-
+    
     def get_children(self, grid, grid_size):
-        if ((self._x + 1) < grid_size) and not(grid[self._x+1][self._y].is_barrier()):
-            self._children.append(grid[self._x+1][self._y])
+        self._children = []  # Reset children
 
-        if ((self._x + - 1) < - 1) and not(grid[self._x-1][self._y].is_barrier()):
-            self._children.append(grid[self._x+1][self._y])
-
-        if ((self._y + 1) < grid_size) and not(grid[self._x][self._y+1].is_barrier()):
-            self._children.append(grid[self._x][self._y+1])
-
-        if ((self._y - 1) < - 1) and not(grid[self._x][self._y-1].is_barrier()):
-            self._children.append(grid[self._x][self._y-1])
+        directions = [(1,0), (-1,0), (0,1), (0,-1)]
+        for dx, dy in directions:
+            nx, ny = self._x + dx, self._y + dy
+            if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
+                self._children.append(grid[nx][ny])
 
         return self._children
-    
+
     def heuristic(self, end):
         """
-        Calculates the heuristic Fscore for the selected quadrant using manhattan calculation
+        Calculates the heuristic Fscore for the selected node using manhattan calculation
 
-        :param start: starting node
         :param end: ending node
-        :param quad: node for calculations to applied from
-        :returns: Sets H-score for quadrant
+        :returns: Sets H-score for node
         """
         end_x, end_y = end.get_coords()
         self._h_score = (abs(self._x - end_x) + abs(self._y - end_y))
 
     def __lt__(self, other):
-        return True
+        return self.get_f_score() < other.get_f_score()
+
+    def __eq__(self, other):
+        return self._x == other._x and self._y == other._y
+
+    def __hash__(self):
+        return hash((self._x, self._y))
 
 def create_grid(grid_size):
     """
-    Intialises a grid of quadrant class
+    Intialises a grid of node classes
     
     :param grid_size: size of the grid to be made
-    :returns grid: grid with intialised quadrants
+    :returns grid: grid with intialised nodes
     """
     grid = []
     for i in range(grid_size):
         grid.append([])
         for j in range(grid_size):
-            grid[i].append(Quadrant(i, j))
+            grid[i].append(Node(i, j))
 
     return grid
 
@@ -132,59 +132,63 @@ def algorithm(start, end, grid, grid_size):
 
     :param start: start node
     :param end: end node
-    :param grid: grid of quadrants
+    :param grid: grid of nodes
     :param grid_size: size of the grid
     :returns: output of quickest path
     """
     goal_found = False
     queue = PriorityQueue()
-    closed_list = []
-    open_list = []
+    closed_list = set()
+    open_list = set()
 
     start.set_g_score(0)
 
     queue.put((start.get_g_score(), start))
-    open_list.append(start)
+    open_list.add(start)
 
     while not(queue.empty()):
         current_node = queue.get()[1]
         open_list.remove(current_node)
+
         if current_node == end:
             print('solution found')
             goal_found = True
             create_path(start, end, current_node.get_parent())
-        closed_list.append(current_node)
+
+        closed_list.add(current_node)
         children = current_node.get_children(grid, grid_size)
+
         for child in children:
+
             if child.is_barrier() or child in closed_list:
                 continue
 
-            tenative_g = current_node.get_g_score() + 1
+            tentative_g = current_node.get_g_score() + 1
 
-            if child not in open_list or tenative_g < child.get_g_score():
-                child.set_g_score(tenative_g)
+            if child not in open_list or tentative_g < child.get_g_score():
+                child.set_g_score(tentative_g)
                 child.heuristic(end)
                 child.update_f_score()
                 child.set_parent(current_node)
 
                 if child not in open_list:
                     queue.put((child.get_f_score(), child))
-                    open_list.append(child)
+                    open_list.add(child)
 
     if not goal_found:
-        print("No path found 😞")
+        print("No path found")
         return ()
             
-def main():
+def calculate():
     grid_size = 5
     grid = create_grid(grid_size)
 
     start = grid[0][0]
     end = grid[4][4]
 
-    start.set_start
-    end.set_end
+    start.set_start()
+    end.set_end()
 
     algorithm(start, end, grid, grid_size)
 
-main()
+calculate()

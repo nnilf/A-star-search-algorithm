@@ -1,18 +1,53 @@
 import numpy as np
 from queue import PriorityQueue
+import pygame
+ 
+# intialise Pygame
+pygame.init()
+ 
+# intialise Width
+width = 880
+
+# intialise surface
+win = pygame.display.set_mode((width, width))
+pygame.display.set_caption("A* Path Finding Algorithm")
+
+red = (255, 0, 0)
+green = (0, 255, 0)
+blue = (0, 0, 255)
+yellow = (255, 255, 0)
+cyan = (0, 255, 255)
+magenta = (255, 0, 255)
+black = (0, 0, 0)
+white = (255, 255, 255)
+grey = (190, 190, 190)
 
 class Node:
     def __init__(self, x, y):
         self._x = x
         self._y = y
+        self._coord_x = x * width
+        self._coord_y = y * width
         self._start = False
         self._end = False
-        self._barrier = False
         self._g_score = np.inf
         self._h_score = np.inf
         self._f_score = np.inf
         self._children = []
         self._parent = None
+        self._colour = white
+
+    def draw(self, win):
+        pygame.draw.rect(win, self._colour, (self._coord_x, self._coord_y, width, width))
+
+    def get_colour(self):
+        return self._colour
+
+    def checked(self):
+        return self._colour == red
+    
+    def checking(self):
+        return self._colour == green
 
     def get_coords(self):
         return (self._x, self._y)
@@ -61,7 +96,7 @@ class Node:
         return self._end
     
     def is_barrier(self):
-        return self._barrier
+        return self._colour == black
     
     def reset(self):
         self._start = False
@@ -97,7 +132,7 @@ class Node:
         self._h_score = (abs(self._x - end_x) + abs(self._y - end_y))
 
     def __lt__(self, other):
-        return self.get_f_score() < other.get_f_score()
+        return True
 
     def __eq__(self, other):
         return self._x == other._x and self._y == other._y
@@ -193,25 +228,46 @@ def algorithm(start, end, grid, grid_size):
     if not goal_found:
         print("No path found")
         return ()
+    
+def draw_grid(rows):
+	gap = width // rows
+	for i in range(rows):
+		pygame.draw.line(win, grey, (0, i * gap), (width, i * gap))
+		for j in range(rows):
+			pygame.draw.line(win, grey, (j * gap, 0), (j * gap, width))
 
-def intialise_barrier(grid: list, barriers: list):
-    for barrier in barriers:
-        grid[barrier[0]][barrier[1]].set_barrier()
+def draw(grid, rows):
+	win.fill(white)
+
+	for row in grid:
+		for node in row:
+			node.draw(win)
+
+	draw_grid(rows)
+	pygame.display.update()
 
 def calculate():
-    grid_size = 5
-    grid = create_grid(grid_size)
+    running = True
 
-    start = grid[0][0]
-    end = grid[4][4]
+    while running:
 
-    start.set_start()
-    end.set_end()
+        for event in pygame.event.get(): # User did something
+            if event.type == pygame.QUIT: # If user clicked close
+                running = False
 
-    barriers = [(0,1),(1,1),(2,1),(3,1),(1,3),(2,3),(3,3),(4,3)]
+        grid_size = 44
+        grid = create_grid(grid_size)
 
-    intialise_barrier(grid, barriers)
+        draw(grid, grid_size)
 
-    algorithm(start, end, grid, grid_size)
+        # start = grid[0][0]
+        # end = grid[4][4]
+
+        # start.set_start()
+        # end.set_end()
+
+        # algorithm(start, end, grid, grid_size)
+
+    pygame.quit()
 
 calculate()

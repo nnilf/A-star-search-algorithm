@@ -69,6 +69,13 @@ class Node:
         self._barrier = False
     
     def get_children(self, grid, grid_size):
+        """
+        Gets the children of current element which is all the Nodes next to the current node
+
+        :param grid: grid of nodes
+        :param grid_size: size of the grid
+        :returns children: all the children of the current element
+        """
         self._children = []  # Reset children
 
         directions = [(1,0), (-1,0), (0,1), (0,-1)]
@@ -114,6 +121,14 @@ def create_grid(grid_size):
     return grid
 
 def create_path(start, end, prior_node):
+    """
+    Loop through path elements and add them to array
+
+    :param start: starting node
+    :param end: target node
+    :param prior_node: node prior to reaching the target node
+    :returns path: quickest path to go from start node to end node
+    """
     finished = False
     path = []
     path.append(end.get_coords())
@@ -178,7 +193,11 @@ def algorithm(start, end, grid, grid_size):
     if not goal_found:
         print("No path found")
         return ()
-            
+
+def intialise_barrier(grid: list, barriers: list):
+    for barrier in barriers:
+        grid[barrier[0]][barrier[1]].set_barrier()
+
 def calculate():
     grid_size = 5
     grid = create_grid(grid_size)
@@ -188,6 +207,10 @@ def calculate():
 
     start.set_start()
     end.set_end()
+
+    barriers = [(0,1),(1,1),(2,1),(3,1),(1,3),(2,3),(3,3),(4,3)]
+
+    intialise_barrier(grid, barriers)
 
     algorithm(start, end, grid, grid_size)
 

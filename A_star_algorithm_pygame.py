@@ -104,8 +104,9 @@ def heuristic(node, end):
     """
     Calculates the heuristic Fscore for the selected node using manhattan calculation
 
+    :param node: current node to calculate from
     :param end: ending node
-    :returns: Sets H-score for node
+    :returns: H score for current node
     """
     node_x, node_y = node
     end_x, end_y = end
@@ -117,6 +118,7 @@ def create_grid(grid_size, width):
     Intialises a grid of node classes
     
     :param grid_size: size of the grid to be made
+    :param width: width of pygame window
     :returns grid: grid with intialised nodes
     """
     gap = width // grid_size
@@ -151,7 +153,6 @@ def algorithm(start, end, grid, draw):
 
     :param start: Start node.
     :param end: End node.
-    :param grid_size: Size of the grid (not directly used here).
     :param grid: Grid of nodes.
     :param draw: Function to update the GUI/visualizer.
     :return: True if path is found, False otherwise.
@@ -205,25 +206,50 @@ def algorithm(start, end, grid, draw):
     
     
 def draw_grid(rows, width, win):
-	gap = width // rows
-	for i in range(rows):
-		pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
-		for j in range(rows):
-			pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+    """
+    Draws grid onto pygame window
+
+    :param rows: amount of rows within the grid
+    :param width: width of the pygame window
+    :param win: pygame window
+    :returns: lines that draw a grid on the pygame window
+    """
+    gap = width // rows
+    for i in range(rows):
+        pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
+        for j in range(rows):
+            pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
 def draw(grid, rows, win, width):
-	win.fill(WHITE)
+    """
+    Draws all nodes and updated pygame display from changes
 
-	for row in grid:
-		for node in row:
-			node.draw(win)
+    :param grid: grid full of nodes
+    :param rows: rows within the grid
+    :param win: pygame window
+    :param width: width of the pygame window
+    :returns: grid drawn onto pygame window
+    """
+    win.fill(WHITE)
 
-	draw_grid(rows, width, win)
-	pygame.display.update()
+    for row in grid:
+        for node in row:
+            node.draw(win)
+
+    draw_grid(rows, width, win)
+    pygame.display.update()
 
 
 def get_clicked_pos(pos, rows, width):
+    """
+    Gets the row and column of where the mouse has clicked
+
+    :param pos: mouse position, x and y
+    :param rows: rows within the grid
+    :param width: width of the pygame window
+    :returns: row and col of mouse position
+    """
     gap = width // rows
     y, x = pos
 
@@ -234,6 +260,12 @@ def get_clicked_pos(pos, rows, width):
 
 
 def calculate(width, win):
+    """
+    Main algorithm function
+
+    :param width: width of pygame window
+    :param win: pygame window
+    """
     grid_size = 44
     grid = create_grid(grid_size, width)
     running = True

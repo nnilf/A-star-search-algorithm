@@ -1,18 +1,18 @@
 
-# 🧠 A* Pathfinding Algorithm Visualizer
+# A* Pathfinding Algorithm Visualizer
 
 A visual representation of the A* pathfinding algorithm using Pygame, featuring customizable grids, obstacles, and real-time animation of the search process.
 
 ---
 
-## 📸 Preview
+## Preview
 
 <!-- Add a screenshot or GIF of the visualizer here -->
 ![Preview Img](image.png)
 
 ---
 
-## 🎮 Features
+## Features
 
 - Interactive grid for placing **start**, **end**, and **barrier** nodes
 - Real-time visualization of the A* pathfinding algorithm
@@ -21,7 +21,7 @@ A visual representation of the A* pathfinding algorithm using Pygame, featuring 
 
 ---
 
-## 🎨 Color Key
+## Color Key
 
 | Color      | Purpose               |
 |------------|------------------------|
@@ -35,7 +35,7 @@ A visual representation of the A* pathfinding algorithm using Pygame, featuring 
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Requirements
 
@@ -58,7 +58,7 @@ python A_star_algorithm_pygame.py
 
 ---
 
-## 🕹️ How to Use
+## How to Use
 
 | Action                  | Control                      |
 |-------------------------|------------------------------|
@@ -71,7 +71,7 @@ python A_star_algorithm_pygame.py
 
 ---
 
-## 📂 Example Usage
+## Example Usage
 
 ```python
 # Example:
@@ -92,7 +92,7 @@ python A_star_algorithm_pygame.py
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**.  
 You are free to use, modify, and distribute this software as you like.

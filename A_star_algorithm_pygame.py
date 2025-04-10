@@ -29,11 +29,7 @@ class Node:
         self._y = y
         self._coords_x = x * width
         self._coords_y = y * width
-        self._g_score = np.inf
-        self._h_score = np.inf
-        self._f_score = np.inf
         self._children = []
-        self._parent = None
         self._colour = WHITE
         self.total_rows = total_rows
 
@@ -42,9 +38,6 @@ class Node:
 
     def set_path(self):
         self._colour = BLUE
-
-    def get_colour(self):
-        return self._colour
 
     def checked(self):
         return self._colour == RED
@@ -61,12 +54,6 @@ class Node:
     def get_coords(self):
         return (self._x, self._y)
     
-    def get_parent(self):
-        return self._parent
-    
-    def set_parent(self, node):
-        self._parent = node
-    
     def set_start(self):
         self._colour = CYAN
     
@@ -75,12 +62,6 @@ class Node:
         
     def set_barrier(self):
         self._colour = BLACK
-        
-    def is_start(self):
-        return self._colour == CYAN
-    
-    def is_end(self):
-        return self._colour == MAGENTA
     
     def is_barrier(self):
         return self._colour == BLACK
@@ -200,7 +181,9 @@ def algorithm(start, end, grid, draw):
             start.set_start()
             return True
         
-        for child in current._children:
+        children = current.get_children()
+
+        for child in children:
             tentative_g = g_score[current] + 1
 
             if tentative_g < g_score[child]:

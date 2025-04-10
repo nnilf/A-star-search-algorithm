@@ -323,9 +323,6 @@ def calculate(width, win):
 
                     algorithm(start, end, grid, lambda: draw(grid, grid_size, win, width))
 
-
-        # algorithm(start, end, grid, grid_size)
-
     pygame.quit()
 
 calculate(WIDTH, WIN)

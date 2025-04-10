@@ -1,6 +1,7 @@
 import numpy as np
 from queue import PriorityQueue
 import pygame
+import math
  
 # intialise Pygame
 pygame.init()
@@ -82,7 +83,7 @@ class Node:
         """
         self._children = []  # Reset children
 
-        directions = [(1,0), (-1,0), (0,1), (0,-1)]
+        directions = [(1,0), (-1,0), (0,1), (0,-1), (-1,-1), (1,-1), (1,1), (-1,1)]
         for dx, dy in directions:
             nx, ny = self._x + dx, self._y + dy
             if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
@@ -110,7 +111,7 @@ def heuristic(node, end):
     """
     node_x, node_y = node
     end_x, end_y = end
-    return (abs(node_x - end_x) + abs(node_y - end_y))
+    return math.sqrt((node_x - end_x) ** 2 + (node_y - end_y) ** 2)
 
 
 def create_grid(grid_size, width):

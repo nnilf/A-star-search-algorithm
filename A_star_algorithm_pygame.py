@@ -40,6 +40,9 @@ class Node:
     def draw(self, win):
         pygame.draw.rect(win, self._colour, (self._coords_x, self._coords_y, self._width, self._width))
 
+    def set_path(self):
+        self._colour = BLUE
+
     def get_colour(self):
         return self._colour
 
@@ -61,18 +64,6 @@ class Node:
     def get_parent(self):
         return self._parent
     
-    def update_f_score(self):
-        self._f_score = self._g_score + self._h_score
-    
-    def get_f_score(self):
-        return self._f_score
-
-    def get_g_score(self):
-        return self._g_score
-    
-    def set_g_score(self, value):
-        self._g_score = value
-
     def set_parent(self, node):
         self._parent = node
     
@@ -96,8 +87,11 @@ class Node:
     
     def reset(self):
         self._colour = WHITE
+
+    def get_children(self):
+        return self._children
     
-    def get_children(self, grid, grid_size):
+    def update_children(self, grid, grid_size):
         """
         Gets the children of current element which is all the Nodes next to the current node
 
@@ -113,18 +107,6 @@ class Node:
             if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
                 self._children.append(grid[nx][ny])
 
-        return self._children
-
-    def heuristic(self, end):
-        """
-        Calculates the heuristic Fscore for the selected node using manhattan calculation
-
-        :param end: ending node
-        :returns: Sets H-score for node
-        """
-        end_x, end_y = end.get_coords()
-        self._h_score = (abs(self._x - end_x) + abs(self._y - end_y))
-
     def __lt__(self, other):
         return True
 
@@ -136,6 +118,18 @@ class Node:
     def __hash__(self):
         return hash((self._x, self._y))
     
+
+def heuristic(node, end):
+    """
+    Calculates the heuristic Fscore for the selected node using manhattan calculation
+
+    :param end: ending node
+    :returns: Sets H-score for node
+    """
+    node_x, node_y = node
+    end_x, end_y = end
+    return (abs(node_x - end_x) + abs(node_y - end_y))
+
 
 def create_grid(grid_size, width):
     """
@@ -154,79 +148,77 @@ def create_grid(grid_size, width):
     return grid
 
 
-def create_path(start, end, prior_node):
+def create_path(came_from, current, draw):
     """
     Loop through path elements and add them to array
 
-    :param start: starting node
-    :param end: target node
-    :param prior_node: node prior to reaching the target node
-    :returns path: quickest path to go from start node to end node
+    :param came_from: set of nodes
+    :param current: final/current node
+    :param draw: draw function for when path is updated
+    :returns path: drawn path
     """
-    finished = False
-    path = []
-    path.append(end.get_coords())
-    node = prior_node
-    while not finished:
-        if node == start:
-            finished = True
-        path.append(node.get_coords())
-        node = node.get_parent()
+    while current in came_from:
+        current = came_from[current]
+        current.set_path()
+        draw()
+
+
+
+def algorithm(start, end, grid, draw):
+    """
+    A* path finding algorithm.
+
+    :param start: Start node.
+    :param end: End node.
+    :param grid_size: Size of the grid (not directly used here).
+    :param grid: Grid of nodes.
+    :param draw: Function to update the GUI/visualizer.
+    :return: True if path is found, False otherwise.
+    """
+    count = 0
+    open_set = PriorityQueue()
+    open_set.put((0, count, start))
+    came_from = {}
+    g_score = {node: float("inf") for row in grid for node in row}
+    g_score[start] = 0
+    f_score = {node: float("inf") for row in grid for node in row}
+    f_score[start] = heuristic(start.get_coords(), end.get_coords())
+
+    open_set_hash = {start}
+
+    while not open_set.empty():
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = open_set.get()[2]
+        open_set_hash.remove(current)
+
+        if current == end:
+            create_path(came_from, end, draw)
+            end.set_end()
+            start.set_start()
+            return True
         
-    path.reverse()
+        for child in current._children:
+            tentative_g = g_score[current] + 1
 
+            if tentative_g < g_score[child]:
+                came_from[child] = current
+                g_score[child] = tentative_g
+                f_score[child] = tentative_g + heuristic(child.get_coords(), end.get_coords())
+                if child not in open_set_hash:
+                    count += 1
+                    open_set.put((f_score[child], count, child))
+                    open_set_hash.add(child)
+                    child.set_checking()
+        
+        draw()
 
-def algorithm(start, end, grid, grid_size):
-    """A* path finding algorithm
-
-    :param start: start node
-    :param end: end node
-    :param grid: grid of nodes
-    :param grid_size: size of the grid
-    :returns: output of quickest path
-    """
-    goal_found = False
-    queue = PriorityQueue()
-    closed_list = set()
-    open_list = set()
-
-    start.set_g_score(0)
-
-    queue.put((start.get_g_score(), start))
-    open_list.add(start)
-
-    while not(queue.empty()):
-        current_node = queue.get()[1]
-        open_list.remove(current_node)
-
-        if current_node == end:
-            print('solution found')
-            goal_found = True
-            create_path(start, end, current_node.get_parent())
-
-        closed_list.add(current_node)
-        children = current_node.get_children(grid, grid_size)
-
-        for child in children:
-
-            if child.is_barrier() or child in closed_list:
-                continue
-
-            tentative_g = current_node.get_g_score() + 1
-
-            if child not in open_list or tentative_g < child.get_g_score():
-                child.set_g_score(tentative_g)
-                child.heuristic(end)
-                child.update_f_score()
-                child.set_parent(current_node)
-
-                if child not in open_list:
-                    queue.put((child.get_f_score(), child))
-                    open_list.add(child)
-
-    if not goal_found:
-        print("No path found")
-        return ()
+        if current != start:
+            current.set_checked()
+    
+    return False
     
     
 def draw_grid(rows, width, win):
@@ -297,8 +289,10 @@ def calculate(width, win):
                 if row < grid_size and col < grid_size:
                     node = grid[row][col]
                     node.reset()
-                    start = None
-                    end = None
+                    if node == start:
+                        start = None
+                    elif node == end:
+                        end = None
 
             if event.type == pygame.KEYDOWN:
                
@@ -306,6 +300,13 @@ def calculate(width, win):
                     start = None
                     end = None
                     grid = create_grid(grid_size, width)
+
+                if event.key == pygame.K_SPACE:
+                    for row in grid:
+                        for node in row:
+                            node.update_children(grid, grid_size)
+
+                    algorithm(start, end, grid, lambda: draw(grid, grid_size, win, width))
 
 
         # algorithm(start, end, grid, grid_size)

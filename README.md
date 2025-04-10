@@ -88,7 +88,8 @@ python A_star_algorithm_pygame.py
 ![Step 2](image-2.png)
 ![Step 3](image-3.png)
 ![Step 4](image-4.png)
-![Step 5-6](image-5.png)
+![Step 5](image-5.png)
+![Step 6](image-6.png)
 
 ---
 

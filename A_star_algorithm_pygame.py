@@ -6,48 +6,48 @@ import pygame
 pygame.init()
  
 # intialise Width
-width = 880
+WIDTH = 968
 
 # intialise surface
-win = pygame.display.set_mode((width, width))
+WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("A* Path Finding Algorithm")
 
-red = (255, 0, 0)
-green = (0, 255, 0)
-blue = (0, 0, 255)
-yellow = (255, 255, 0)
-cyan = (0, 255, 255)
-magenta = (255, 0, 255)
-black = (0, 0, 0)
-white = (255, 255, 255)
-grey = (190, 190, 190)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREY = (190, 190, 190)
 
 class Node:
-    def __init__(self, x, y):
+    def __init__(self, x, y, width, total_rows):
+        self._width = width
         self._x = x
         self._y = y
-        self._coord_x = x * width
-        self._coord_y = y * width
-        self._start = False
-        self._end = False
+        self._coords_x = x * width
+        self._coords_y = y * width
         self._g_score = np.inf
         self._h_score = np.inf
         self._f_score = np.inf
         self._children = []
         self._parent = None
-        self._colour = white
+        self._colour = WHITE
+        self.total_rows = total_rows
 
     def draw(self, win):
-        pygame.draw.rect(win, self._colour, (self._coord_x, self._coord_y, width, width))
+        pygame.draw.rect(win, self._colour, (self._coords_x, self._coords_y, self._width, self._width))
 
     def get_colour(self):
         return self._colour
 
     def checked(self):
-        return self._colour == red
+        return self._colour == RED
     
     def checking(self):
-        return self._colour == green
+        return self._colour == GREEN
 
     def get_coords(self):
         return (self._x, self._y)
@@ -71,32 +71,22 @@ class Node:
         self._parent = node
     
     def set_start(self):
-        if not(self._end):
-            self._start = True
-            self._g_score = 0
-        else:
-            return "Already end node"
+        self._colour = CYAN
     
     def set_end(self):
-        if not(self._start):
-            self._end = True
-        else:
-            return "Already start node"
+        self._colour = MAGENTA
         
     def set_barrier(self):
-        if not(self._start) and not(self._end):
-            self._barrier = True
-        else:
-            return "Node is start or end node"
+        self._colour = BLACK
         
     def is_start(self):
-        return self._start
+        return self._colour == CYAN
     
     def is_end(self):
-        return self._end
+        return self._colour == MAGENTA
     
     def is_barrier(self):
-        return self._colour == black
+        return self._colour == BLACK
     
     def reset(self):
         self._start = False
@@ -135,23 +125,26 @@ class Node:
         return True
 
     def __eq__(self, other):
+        if not isinstance(other, Node):
+            return False
         return self._x == other._x and self._y == other._y
 
     def __hash__(self):
         return hash((self._x, self._y))
 
-def create_grid(grid_size):
+def create_grid(grid_size, width):
     """
     Intialises a grid of node classes
     
     :param grid_size: size of the grid to be made
     :returns grid: grid with intialised nodes
     """
+    gap = width // grid_size
     grid = []
     for i in range(grid_size):
         grid.append([])
         for j in range(grid_size):
-            grid[i].append(Node(i, j))
+            grid[i].append(Node(i, j, gap, grid_size))
 
     return grid
 
@@ -229,45 +222,67 @@ def algorithm(start, end, grid, grid_size):
         print("No path found")
         return ()
     
-def draw_grid(rows):
+def draw_grid(rows, width, win):
 	gap = width // rows
 	for i in range(rows):
-		pygame.draw.line(win, grey, (0, i * gap), (width, i * gap))
+		pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
 		for j in range(rows):
-			pygame.draw.line(win, grey, (j * gap, 0), (j * gap, width))
+			pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
-def draw(grid, rows):
-	win.fill(white)
+def draw(grid, rows, win, width):
+	win.fill(WHITE)
 
 	for row in grid:
 		for node in row:
 			node.draw(win)
 
-	draw_grid(rows)
+	draw_grid(rows, width, win)
 	pygame.display.update()
 
-def calculate():
+def get_clicked_pos(pos, rows, width):
+    gap = width // rows
+    y, x = pos
+
+    row = y // gap
+    col = x // gap
+
+    return row, col
+
+def calculate(width, win):
+    grid_size = 44
+    grid = create_grid(grid_size, width)
     running = True
 
+    start = None
+    end = None
+
     while running:
+
+        # draw grid
+        draw(grid, grid_size, win, width)
 
         for event in pygame.event.get(): # User did something
             if event.type == pygame.QUIT: # If user clicked close
                 running = False
 
-        grid_size = 44
-        grid = create_grid(grid_size)
+            if pygame.mouse.get_pressed()[0]: # left mouse button
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_pos(pos, grid_size, width)
+                node = grid[row][col]
+                if not start and node != end:
+                    start = node
+                    node.set_start()
 
-        draw(grid, grid_size)
+                elif not end and node != start:
+                    end = node
+                    node.set_end()
 
-        # start = grid[0][0]
-        # end = grid[4][4]
+                elif node != start and node != end:
+                    node.set_barrier()
 
-        # start.set_start()
-        # end.set_end()
 
         # algorithm(start, end, grid, grid_size)
 
     pygame.quit()
 
-calculate()
+calculate(WIDTH, WIN)

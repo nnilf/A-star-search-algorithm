@@ -48,6 +48,12 @@ class Node:
     
     def checking(self):
         return self._colour == GREEN
+    
+    def set_checked(self):
+        self._colour = RED
+
+    def set_checking(self):
+        self._colour = GREEN
 
     def get_coords(self):
         return (self._x, self._y)
@@ -89,9 +95,7 @@ class Node:
         return self._colour == BLACK
     
     def reset(self):
-        self._start = False
-        self._end = False
-        self._barrier = False
+        self._colour = WHITE
     
     def get_children(self, grid, grid_size):
         """
@@ -131,6 +135,7 @@ class Node:
 
     def __hash__(self):
         return hash((self._x, self._y))
+    
 
 def create_grid(grid_size, width):
     """
@@ -147,6 +152,7 @@ def create_grid(grid_size, width):
             grid[i].append(Node(i, j, gap, grid_size))
 
     return grid
+
 
 def create_path(start, end, prior_node):
     """
@@ -168,7 +174,7 @@ def create_path(start, end, prior_node):
         node = node.get_parent()
         
     path.reverse()
-    print(path)
+
 
 def algorithm(start, end, grid, grid_size):
     """A* path finding algorithm
@@ -222,12 +228,14 @@ def algorithm(start, end, grid, grid_size):
         print("No path found")
         return ()
     
+    
 def draw_grid(rows, width, win):
 	gap = width // rows
 	for i in range(rows):
 		pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
 		for j in range(rows):
 			pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+
 
 def draw(grid, rows, win, width):
 	win.fill(WHITE)
@@ -239,6 +247,7 @@ def draw(grid, rows, win, width):
 	draw_grid(rows, width, win)
 	pygame.display.update()
 
+
 def get_clicked_pos(pos, rows, width):
     gap = width // rows
     y, x = pos
@@ -247,6 +256,7 @@ def get_clicked_pos(pos, rows, width):
     col = x // gap
 
     return row, col
+
 
 def calculate(width, win):
     grid_size = 44
@@ -268,17 +278,34 @@ def calculate(width, win):
             if pygame.mouse.get_pressed()[0]: # left mouse button
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, grid_size, width)
-                node = grid[row][col]
-                if not start and node != end:
-                    start = node
-                    node.set_start()
+                if row < grid_size and col < grid_size:
+                    node = grid[row][col]
+                    if not start and node != end:
+                        start = node
+                        node.set_start()
 
-                elif not end and node != start:
-                    end = node
-                    node.set_end()
+                    elif not end and node != start:
+                        end = node
+                        node.set_end()
 
-                elif node != start and node != end:
-                    node.set_barrier()
+                    elif node != start and node != end:
+                        node.set_barrier()
+
+            if pygame.mouse.get_pressed()[2]: # right mouse button
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_pos(pos, grid_size, width)
+                if row < grid_size and col < grid_size:
+                    node = grid[row][col]
+                    node.reset()
+                    start = None
+                    end = None
+
+            if event.type == pygame.KEYDOWN:
+               
+                if event.key == pygame.K_c:
+                    start = None
+                    end = None
+                    grid = create_grid(grid_size, width)
 
 
         # algorithm(start, end, grid, grid_size)

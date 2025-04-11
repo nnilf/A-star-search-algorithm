@@ -1,7 +1,7 @@
-import numpy as np
 from queue import PriorityQueue
 import pygame
 import math
+from typing import List, Callable
  
 # intialise Pygame
 pygame.init()
@@ -26,7 +26,7 @@ WHITE = (255, 255, 255)
 GREY = (190, 190, 190)
 
 class Node:
-    def __init__(self, x, y, width, total_rows, difference):
+    def __init__(self, x: int, y: int, width: int, total_rows: int, difference: int):
         self.width = width
         self.row = x
         self.col = y
@@ -35,7 +35,8 @@ class Node:
         self.total_rows = total_rows
         self.difference = difference
 
-    def draw(self, win):
+    def draw(self, win: pygame.Surface):
+        """Draws current node onto grid"""
         pygame.draw.rect(win, self.colour, (self.col * self.width, self.row * self.width + self.difference, self.width, self.width))
 
     def set_path(self):
@@ -74,7 +75,7 @@ class Node:
     def get_children(self):
         return self.children
     
-    def update_children(self, grid, grid_size):
+    def update_children(self, grid: list[list["Node"]], grid_size: int) -> None:
         """
         Gets the children of current element which is all the Nodes next to the current node
 
@@ -102,7 +103,7 @@ class Node:
         return hash((self.row, self.col))
     
 
-def heuristic(node_coords: tuple, end_coords: tuple):
+def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int]) -> float:
     """
     Calculates the heuristic Fscore for the selected node using Euclidean distance
 
@@ -115,7 +116,7 @@ def heuristic(node_coords: tuple, end_coords: tuple):
     return math.sqrt((node_x - end_x) ** 2 + (node_y - end_y) ** 2)
 
 
-def create_grid(grid_size, width, difference):
+def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]:
     """
     Intialises a grid of node classes
     
@@ -133,7 +134,7 @@ def create_grid(grid_size, width, difference):
     return grid
 
 
-def create_path(came_from, current, draw):
+def create_path(came_from: Node, current: Node, draw: Callable[[], None]):
     """
     Loop through path elements and add them to array
 
@@ -149,7 +150,7 @@ def create_path(came_from, current, draw):
 
 
 
-def algorithm(start, end, grid, draw):
+def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None]) -> bool:
     """
     A* path finding algorithm.
 
@@ -207,7 +208,7 @@ def algorithm(start, end, grid, draw):
     return False
     
     
-def draw_grid(rows, width, win, difference):
+def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
     """
     Draws grid onto pygame window
 
@@ -223,7 +224,7 @@ def draw_grid(rows, width, win, difference):
             pygame.draw.line(win, GREY, (j * gap, difference), (j * gap, width+difference))
 
 
-def draw(grid, rows, win, width, difference):
+def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
     """
     Draws all nodes and updated pygame display from changes
 
@@ -243,7 +244,7 @@ def draw(grid, rows, win, width, difference):
     pygame.display.update()
 
 
-def get_clicked_pos(pos, rows, width, difference):
+def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple[int, int]:
     """
     Gets the row and column of where the mouse has clicked
 
@@ -268,7 +269,7 @@ def get_clicked_pos(pos, rows, width, difference):
     return row, col
 
 
-def calculate(width, win, difference):
+def calculate(width: int, win: pygame.Surface, difference: int):
     """
     Main algorithm function
 
@@ -327,11 +328,24 @@ def calculate(width, win, difference):
                     grid = create_grid(grid_size, width, difference)
 
                 if event.key == pygame.K_SPACE:
-                    for row in grid:
-                        for node in row:
-                            node.update_children(grid, grid_size)
-
-                    algorithm(start, end, grid, lambda: draw(grid, grid_size, win, width, difference))
+                    if event.key == pygame.K_SPACE:
+                        for row in grid:
+                            for node in row:
+                                # Clear previous path, checking, and checked nodes but keep barriers
+                                if (node.colour == BLUE or  
+                                    node.colour == RED or   
+                                    node.colour == GREEN):  
+                                    node.reset()            
+                                
+                                node.update_children(grid, grid_size)
+                        
+                        if start:
+                            start.set_start()
+                        if end:
+                            end.set_end()
+                        
+                        # Run algorithm
+                        algorithm(start, end, grid, lambda: draw(grid, grid_size, win, width, difference))
 
     pygame.quit()
 

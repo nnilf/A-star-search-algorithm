@@ -306,8 +306,8 @@ def calculate(width: int, win: pygame.Surface, difference: int):
             if pygame.mouse.get_pressed()[0]: # left mouse button
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, grid_size, width, difference)
-                if row < grid_size and col < grid_size:
-                    if row is not None and col is not None:
+                if row is not None and col is not None:
+                    if row < grid_size and col < grid_size:
                         node = grid[row][col]
                         if not start and node != end:
                             start = node

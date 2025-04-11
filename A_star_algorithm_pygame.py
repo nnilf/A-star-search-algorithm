@@ -2,28 +2,12 @@ from queue import PriorityQueue
 import pygame
 import math
 from typing import List, Callable
- 
-# intialise Pygame
+from constants import Colors, Display, Algorithm 
+
+# intialise Pygame and surface
 pygame.init()
- 
-# intialise Width
-HEIGHT = 920
-GRID_WIDTH = 880
-DIFFERENCE = HEIGHT - GRID_WIDTH
-
-# intialise surface
-WIN = pygame.display.set_mode((GRID_WIDTH, HEIGHT))
+WIN = pygame.display.set_mode((Display.GRID_WIDTH, Display.WINDOW_HEIGHT))
 pygame.display.set_caption("A* Path Finding Algorithm")
-
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255, 255, 0)
-CYAN = (0, 255, 255)
-MAGENTA = (255, 0, 255)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GREY = (190, 190, 190)
 
 class Node:
     def __init__(self, x: int, y: int, width: int, total_rows: int, difference: int):
@@ -31,7 +15,7 @@ class Node:
         self.row = x
         self.col = y
         self.children = []
-        self.colour = WHITE
+        self.colour = Colors.WHITE
         self.total_rows = total_rows
         self.difference = difference
 
@@ -40,37 +24,37 @@ class Node:
         pygame.draw.rect(win, self.colour, (self.col * self.width, self.row * self.width + self.difference, self.width, self.width))
 
     def set_path(self):
-        self.colour = BLUE
+        self.colour = Colors.BLUE
 
     def checked(self):
-        return self.colour == RED
+        return self.colour == Colors.RED
     
     def checking(self):
-        return self.colour == GREEN
+        return self.colour == Colors.GREEN
     
     def set_checked(self):
-        self.colour = RED
+        self.colour = Colors.RED
 
     def set_checking(self):
-        self.colour = GREEN
+        self.colour = Colors.GREEN
 
     def get_coords(self):
         return (self.row, self.col)
     
     def set_start(self):
-        self.colour = CYAN
+        self.colour = Colors.CYAN
     
     def set_end(self):
-        self.colour = MAGENTA
+        self.colour = Colors.MAGENTA
         
     def set_barrier(self):
-        self.colour = BLACK
+        self.colour = Colors.BLACK
     
     def is_barrier(self):
-        return self.colour == BLACK
+        return self.colour == Colors.BLACK
     
     def reset(self):
-        self.colour = WHITE
+        self.colour = Colors.WHITE
 
     def get_children(self):
         return self.children
@@ -230,9 +214,9 @@ def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
     """
     gap = width // rows
     for i in range(rows):
-        pygame.draw.line(win, GREY, (0, (i * gap) + difference), (width, (i * gap) + difference))
+        pygame.draw.line(win, Colors.GREY, (0, (i * gap) + difference), (width, (i * gap) + difference))
         for j in range(rows):
-            pygame.draw.line(win, GREY, (j * gap, difference), (j * gap, width+difference))
+            pygame.draw.line(win, Colors.GREY, (j * gap, difference), (j * gap, width+difference))
 
 
 def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
@@ -245,7 +229,7 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     :param width: width of the pygame window
     :returns: grid drawn onto pygame window
     """
-    win.fill(WHITE)
+    win.fill(Colors.WHITE)
 
     for row in grid:
         for node in row:
@@ -280,14 +264,13 @@ def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple
     return row, col
 
 
-def calculate(width: int, win: pygame.Surface, difference: int):
+def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
     """
     Main algorithm function
 
     :param width: width of pygame window
     :param win: pygame window
     """
-    grid_size = 44
     grid = create_grid(grid_size, width, difference)
     running = True
 
@@ -343,9 +326,9 @@ def calculate(width: int, win: pygame.Surface, difference: int):
                         for row in grid:
                             for node in row:
                                 # Clear previous path, checking, and checked nodes but keep barriers
-                                if (node.colour == BLUE or  
-                                    node.colour == RED or   
-                                    node.colour == GREEN):  
+                                if (node.colour == Colors.BLUE or  
+                                    node.colour == Colors.RED or   
+                                    node.colour == Colors.GREEN):  
                                     node.reset()            
                                 
                                 node.update_children(grid, grid_size)
@@ -361,4 +344,4 @@ def calculate(width: int, win: pygame.Surface, difference: int):
 
     pygame.quit()
 
-calculate(GRID_WIDTH, WIN, DIFFERENCE)
+calculate(Display.GRID_WIDTH, WIN, Display.DIFFERENCE, Algorithm.DEFAULT_GRID_SIZE)

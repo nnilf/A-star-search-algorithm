@@ -8,7 +8,7 @@ A visual representation of the A* pathfinding algorithm using Pygame, featuring 
 ## Preview
 
 <!-- Add a screenshot or GIF of the visualizer here -->
-![Preview Img](image.png)
+![Preview Img](images/image.png)
 
 ---
 
@@ -84,12 +84,12 @@ python A_star_algorithm_pygame.py
 ```
 
 <!-- Add screenshots or specific use case examples here -->
-![Step 1](image-1.png)
-![Step 2](image-2.png)
-![Step 3](image-3.png)
-![Step 4](image-4.png)
-![Step 5](image-5.png)
-![Step 6](image-6.png)
+![Step 1](images/image-1.png)
+![Step 2](images/image-2.png)
+![Step 3](images/image-3.png)
+![Step 4](images/image-4.png)
+![Step 5](images/image-5.png)
+![Step 6](images/image-6.png)
 
 ---
 

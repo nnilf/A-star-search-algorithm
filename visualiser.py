@@ -1,5 +1,5 @@
 import pygame
-from constants import Colors, Display
+from constants import Colors
 from Node import Node
 
 def create_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]:

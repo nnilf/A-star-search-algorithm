@@ -339,6 +339,7 @@ def calculate(width: int, win: pygame.Surface, difference: int):
                                 
                                 node.update_children(grid, grid_size)
                         
+                        # restore start and end visuals if they exist
                         if start:
                             start.set_start()
                         if end:

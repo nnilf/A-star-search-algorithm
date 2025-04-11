@@ -3,7 +3,7 @@ import pygame
 import math
 from typing import List, Callable
 from constants import Colors, Display, Algorithm 
-from utils import get_clicked_pos, heuristic, draw_grid
+from utils import create_grid, heuristic, get_clicked_pos, draw_grid, clear_path_and_update_children
 from Node import Node
 
 # intialise Pygame and surface
@@ -12,41 +12,11 @@ WIN = pygame.display.set_mode((Display.GRID_WIDTH, Display.WINDOW_HEIGHT))
 pygame.display.set_caption("A* Path Finding Algorithm")
 
 
-def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]:
-    """Intialises a grid of node classes
-
-    Args:
-        grid_size: Size of the grid to be made.
-        width: Width of pygame window.
-
-    Returns:
-        grid: Grid with intialised nodes
-    """
-    gap = width // grid_size
-    grid = []
-    for i in range(grid_size):
-        grid.append([])
-        for j in range(grid_size):
-            grid[i].append(Node(i, j, gap, grid_size, difference))
-
-    return grid
-
-
-def create_path(came_from: dict[Node], current: Node, draw: Callable[[], None]):
-    """Loop through path elements and add them to array
-
-    Args:
-        came_from: Set of nodes.
-        current: Final/current node.
-        draw: Draw function for when path is updated.
-
-    Returns:
-        path: Drawn path.
-    """
-    while current in came_from:
-        current = came_from[current]
-        current.set_state("path")
-        draw()
+def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
+    """Main entry point for the A* visualization"""
+    grid = create_grid(grid_size, width, difference)
+    run_visualization_loop(grid, grid_size, win, width, difference)
+    pygame.quit()
 
 
 def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None]) -> bool:
@@ -120,6 +90,23 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
     return False
 
 
+def create_path(came_from: dict[Node], current: Node, draw: Callable[[], None]):
+    """Loop through path elements and add them to array
+
+    Args:
+        came_from: Set of nodes.
+        current: Final/current node.
+        draw: Draw function for when path is updated.
+
+    Returns:
+        path: Drawn path.
+    """
+    while current in came_from:
+        current = came_from[current]
+        current.set_state("path")
+        draw()
+
+
 def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
     """Draws all nodes and updated pygame display from changes.
 
@@ -141,12 +128,6 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     draw_grid(rows, width, win, difference)
     pygame.display.update()
 
-
-def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
-    """Main entry point for the A* visualization"""
-    grid = create_grid(grid_size, width, difference)
-    run_visualization_loop(grid, grid_size, win, width, difference)
-    pygame.quit()
 
 def run_visualization_loop(grid: list[list[Node]], grid_size: int, win: pygame.Surface, 
                           width: int, difference: int) -> None:
@@ -232,24 +213,23 @@ def handle_keyboard(event, grid, grid_size, start, end, width, difference):
     return grid, start, end
 
 
-def clear_path_and_update_children(grid, grid_size, start, end):
-    """Clear visualization nodes and update node connections"""
-    for row in grid:
-        for node in row:
-            # Clear previous path, checking, and checked nodes
-            if (node.colour == Colors.BLUE or node.colour == Colors.RED or node.colour == Colors.GREEN):
-                node.set_state("reset")
-            
-            # Update children for all nodes
-            node.update_children(grid, grid_size)
-    
+def create_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]:
+    """Intialises a grid of node classes
 
-    # Restore start and end visuals
-    if start:
-        start.set_state("start")
-    if end:
-        end.set_state("end")
-    
+    Args:
+        grid_size: Size of the grid to be made.
+        width: Width of pygame window.
+
+    Returns:
+        grid: Grid with intialised nodes
+    """
+    gap = width // grid_size
+    grid = []
+    for i in range(grid_size):
+        grid.append([])
+        for j in range(grid_size):
+            grid[i].append(Node(i, j, gap, grid_size, difference))
+
     return grid
 
 

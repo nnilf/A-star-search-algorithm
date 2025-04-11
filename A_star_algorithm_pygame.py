@@ -60,12 +60,14 @@ class Node:
         return self.children
     
     def update_children(self, grid: list[list["Node"]], grid_size: int) -> None:
-        """
-        Gets the children of current element which is all the Nodes next to the current node
+        """Gets the children of current element which is all the Nodes next to the current node.
 
-        :param grid: grid of nodes
-        :param grid_size: size of the grid
-        :returns children: all the children of the current element
+        Args:
+            grid: Grid of nodes.
+            grid_size: Size of the grid.
+
+        Returns:
+            children: Children of the current element
         """
         self.children = []  # Reset children
 
@@ -109,12 +111,14 @@ class Node:
     
 
 def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int]) -> float:
-    """
-    Calculates the heuristic Fscore for the selected node using Euclidean distance
+    """Calculates the heuristic Fscore for the selected node using Euclidean distance
 
-    :param node: Tuple containig nodes coordinates
-    :param end: Tuple containing target nodes coordinates
-    :returns: H score for current node
+    Args:
+        node: Tuple containig nodes coordinates.
+        end: Tuple containing target nodes coordinates
+
+    Returns:
+        H score for current node
     """
     node_x, node_y = node_coords
     end_x, end_y = end_coords
@@ -122,12 +126,14 @@ def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int]) -> floa
 
 
 def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]:
-    """
-    Intialises a grid of node classes
-    
-    :param grid_size: size of the grid to be made
-    :param width: width of pygame window
-    :returns grid: grid with intialised nodes
+    """Intialises a grid of node classes
+
+    Args:
+        grid_size: Size of the grid to be made.
+        width: Width of pygame window.
+
+    Returns:
+        grid: Grid with intialised nodes
     """
     gap = width // grid_size
     grid = []
@@ -140,13 +146,15 @@ def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]
 
 
 def create_path(came_from: Node, current: Node, draw: Callable[[], None]):
-    """
-    Loop through path elements and add them to array
+    """Loop through path elements and add them to array
 
-    :param came_from: set of nodes
-    :param current: final/current node
-    :param draw: draw function for when path is updated
-    :returns path: drawn path
+    Args:
+        came_from: Set of nodes.
+        current: Final/current node.
+        draw: Draw function for when path is updated.
+
+    Returns:
+        path: Drawn path.
     """
     while current in came_from:
         current = came_from[current]
@@ -155,16 +163,17 @@ def create_path(came_from: Node, current: Node, draw: Callable[[], None]):
 
 
 def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None]) -> bool:
-    """
-    A* path finding algorithm.
+    """A* path finding algorithm.
 
-    :param start: Start node.
-    :param end: End node.
-    :param grid: Grid of nodes.
-    :param draw: Function to update the GUI/visualizer.
-    :return: True if path is found, False otherwise.
-    """
+    Args:
+        start: Start node.
+        end: End node.
+        grid: Grid of nodes.
+        draw: Function to update the GUI/visualizer.
 
+    Returns:
+        True if path is found, False otherwise.
+    """
     # Early return for invalid inputs
     if not start or not end:
         return False
@@ -225,13 +234,15 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
     
     
 def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
-    """
-    Draws grid onto pygame window
+    """Draws grid onto pygame window
 
-    :param rows: amount of rows within the grid
-    :param width: width of the pygame window
-    :param win: pygame window
-    :returns: lines that draw a grid on the pygame window
+    Args:
+        rows: Amount of rows within the grid.
+        width: Width of the pygame window.
+        win: Pygame window.
+
+    Returns:
+        Lines that draw a grid on the pygame window
     """
     gap = width // rows
     for i in range(rows):
@@ -241,14 +252,16 @@ def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
 
 
 def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
-    """
-    Draws all nodes and updated pygame display from changes
+    """Draws all nodes and updated pygame display from changes.
 
-    :param grid: grid full of nodes
-    :param rows: rows within the grid
-    :param win: pygame window
-    :param width: width of the pygame window
-    :returns: grid drawn onto pygame window
+    Args:
+        grid: Grid full of nodes.
+        rows: Rows within the grid.
+        win: Pygame window.
+        width: Width of the pygame window.
+
+    Returns:
+        Grid drawn onto pygame window.
     """
     win.fill(Colors.WHITE)
 
@@ -261,14 +274,16 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
 
 
 def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple[int, int]:
-    """
-    Gets the row and column of where the mouse has clicked
+    """Gets the row and column of where the mouse has clicked.
 
-    :param pos: mouse position, x and y
-    :param rows: rows within the grid
-    :param width: width of the pygame window
-    :param difference: vertical offset of the grid
-    :returns: row and col of mouse position
+    Args:
+        pos: Mouse position, x and y.
+        rows: Rows within the grid.
+        width: Width of the pygame window.
+        difference: Vertical offset of the grid.
+
+    Returns:
+        Row and col of mouse position.
     """
     gap = width // rows
     x, y = pos
@@ -286,11 +301,14 @@ def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple
 
 
 def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
-    """
-    Main algorithm function
+    """Main algorithm function.
 
-    :param width: width of pygame window
-    :param win: pygame window
+    Args:
+        width: Width of pygame window.
+        win: Pygame window.
+
+    Returns:
+        Algorithm.
     """
     grid = create_grid(grid_size, width, difference)
     running = True

@@ -1,7 +1,7 @@
 import pygame
 from constants import Display, Algorithm
 from visualiser import create_grid, draw, get_clicked_pos, clear_path_and_update_children
-from A_star_algorithm_pygame import algorithm
+from A_star_algorithm import algorithm
 
 def main():
     pygame.init()

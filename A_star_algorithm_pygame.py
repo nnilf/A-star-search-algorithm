@@ -301,86 +301,116 @@ def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple
 
 
 def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
-    """Main algorithm function.
+    """Main entry point for the A* visualization"""
+    grid = initialize_grid(grid_size, width, difference)
+    run_visualization_loop(grid, grid_size, win, width, difference)
+    pygame.quit()
 
-    Args:
-        width: Width of pygame window.
-        win: Pygame window.
+def initialize_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]:
+    """Create and initialize the grid"""
+    return create_grid(grid_size, width, difference)
 
-    Returns:
-        Algorithm.
-    """
-    grid = create_grid(grid_size, width, difference)
+def run_visualization_loop(grid: list[list[Node]], grid_size: int, win: pygame.Surface, 
+                          width: int, difference: int) -> None:
+    """Main loop for the visualization"""
     running = True
-
     start = None
     end = None
 
     while running:
-
-        # draw grid
+        # Draw grid
         draw(grid, grid_size, win, width, difference)
-
-        for event in pygame.event.get(): # User did something
-            if event.type == pygame.QUIT: # If user clicked close
+        
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
+                pygame.quit()
+                break
+            
+            # Handle mouse and keyboard events
+            running, grid, start, end = handle_input(event, grid, grid_size, start, end, width, difference)
 
-            if pygame.mouse.get_pressed()[0]: # left mouse button
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, grid_size, width, difference)
-                if row is not None and col is not None:
-                    if row < grid_size and col < grid_size:
-                        node = grid[row][col]
-                        if not start and node != end:
-                            start = node
-                            node.set_start()
+def handle_input(event, grid, grid_size, start, end, width, difference):
+    """Process user input events"""
+    # Handle mouse clicks
+    if pygame.mouse.get_pressed()[0]:  # left mouse button
+        start, end = handle_left_click(grid, grid_size, start, end, width, difference)
+    
+    if pygame.mouse.get_pressed()[2]:  # right mouse button
+        start, end = handle_right_click(grid, grid_size, start, end, width, difference)
+    
+    # Handle keyboard events
+    if event.type == pygame.KEYDOWN:
+        grid, start, end = handle_keyboard(event, grid, grid_size, start, end, width, difference)
+    
+    return True, grid, start, end  # Keep running by default
 
-                        elif not end and node != start:
-                            end = node
-                            node.set_end()
+def handle_left_click(grid, grid_size, start, end, width, difference):
+    """Process left mouse clicks to place start, end, and barriers"""
+    pos = pygame.mouse.get_pos()
+    row, col = get_clicked_pos(pos, grid_size, width, difference)
+    if row is not None and col is not None:
+        node = grid[row][col]
+        if not start and node != end:
+            start = node
+            node.set_start()
+        elif not end and node != start:
+            end = node
+            node.set_end()
+        elif node != start and node != end:
+            node.set_barrier()
+    return start, end
 
-                        elif node != start and node != end:
-                            node.set_barrier()
+def handle_right_click(grid, grid_size, start, end, width, difference):
+    """Process right mouse clicks to remove nodes"""
+    pos = pygame.mouse.get_pos()
+    row, col = get_clicked_pos(pos, grid_size, width, difference)
+    if row is not None and col is not None:
+        node = grid[row][col]
+        node.reset()
+        if node == start:
+            start = None
+        elif node == end:
+            end = None
+    return start, end
 
-            if pygame.mouse.get_pressed()[2]: # right mouse button
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, grid_size, width, difference)
-                if row < grid_size and col < grid_size:
-                    node = grid[row][col]
-                    node.reset()
-                    if node == start:
-                        start = None
-                    elif node == end:
-                        end = None
+def handle_keyboard(event, grid, grid_size, start, end, width, difference):
+    """Process keyboard inputs"""
+    if event.key == pygame.K_c:
+        start = None
+        end = None
+        grid = create_grid(grid_size, width, difference)
+    
+    if event.key == pygame.K_SPACE:
+        # Clear previous path and update children in a single loop
+        grid = clear_path_and_update_children(grid, grid_size, start, end)
+        run_algorithm(grid, start, end, grid_size, width, difference)
+    
+    return grid, start, end
 
-            if event.type == pygame.KEYDOWN:
-               
-                if event.key == pygame.K_c:
-                    start = None
-                    end = None
-                    grid = create_grid(grid_size, width, difference)
+def clear_path_and_update_children(grid, grid_size, start, end):
+    """Clear visualization nodes and update node connections"""
+    for row in grid:
+        for node in row:
+            # Clear previous path, checking, and checked nodes
+            if (node.colour == Colors.BLUE or node.colour == Colors.RED or node.colour == Colors.GREEN):
+                node.reset()
+            
+            # Update children for all nodes
+            node.update_children(grid, grid_size)
+    
+    # Restore start and end visuals
+    if start:
+        start.set_start()
+    if end:
+        end.set_end()
+    
+    return grid
 
-                if event.key == pygame.K_SPACE:
-                    if event.key == pygame.K_SPACE:
-                        for row in grid:
-                            for node in row:
-                                # Clear previous path, checking, and checked nodes but keep barriers
-                                if (node.colour == Colors.BLUE or  
-                                    node.colour == Colors.RED or   
-                                    node.colour == Colors.GREEN):  
-                                    node.reset()            
-                                
-                                node.update_children(grid, grid_size)
-                        
-                        # restore start and end visuals if they exist
-                        if start:
-                            start.set_start()
-                        if end:
-                            end.set_end()
-                        
-                        # Run algorithm
-                        algorithm(start, end, grid, lambda: draw(grid, grid_size, win, width, difference))
-
-    pygame.quit()
+def run_algorithm(grid, start, end, grid_size, width, difference):
+    """Execute the A* algorithm if start and end are defined"""
+    if start and end:
+        algorithm(start, end, grid, lambda: draw(grid, grid_size, WIN, width, difference))
 
 calculate(Display.GRID_WIDTH, WIN, Display.DIFFERENCE, Algorithm.DEFAULT_GRID_SIZE)

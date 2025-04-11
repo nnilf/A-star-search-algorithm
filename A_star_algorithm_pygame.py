@@ -91,10 +91,10 @@ class Node:
             if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
                 self.children.append(grid[nx][ny])
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Node"):
         return True
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Node"):
         if not isinstance(other, Node):
             return False
         return self.row == other.row and self.col == other.col
@@ -149,7 +149,6 @@ def create_path(came_from: Node, current: Node, draw: Callable[[], None]):
         draw()
 
 
-
 def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None]) -> bool:
     """
     A* path finding algorithm.
@@ -160,6 +159,11 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
     :param draw: Function to update the GUI/visualizer.
     :return: True if path is found, False otherwise.
     """
+
+    # Early return for invalid inputs
+    if not start or not end:
+        return False
+
     count = 0
     open_set = PriorityQueue()
     open_set.put((0, count, start))
@@ -188,7 +192,14 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
         children = current.get_children()
 
         for child in children:
-            tentative_g = g_score[current] + 1
+
+            # Calculate whether this is a diagonal move
+            dx = abs(child.row - current.row)
+            dy = abs(child.col - current.col)
+            # Diagonal moves cost more
+            move_cost = math.sqrt(2) if dx + dy == 2 else 1
+
+            tentative_g = g_score[current] + move_cost
 
             if tentative_g < g_score[child]:
                 came_from[child] = current

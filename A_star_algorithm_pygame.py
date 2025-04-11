@@ -36,9 +36,6 @@ class Node:
         """Draws current node onto grid"""
         pygame.draw.rect(win, self.colour, (self.col * self.width, self.row * self.width + self.difference, self.width, self.width))
 
-    def set_path(self):
-        self.colour = Colors.BLUE
-
     def checked(self):
         return self.colour == Colors.RED
     
@@ -138,7 +135,7 @@ def create_path(came_from: dict[Node], current: Node, draw: Callable[[], None]):
     """
     while current in came_from:
         current = came_from[current]
-        current.set_path()
+        current.set_state("path")
         draw()
 
 

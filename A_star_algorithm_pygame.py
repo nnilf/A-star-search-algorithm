@@ -3,6 +3,7 @@ import pygame
 import math
 from typing import List, Callable
 from constants import Colors, Display, Algorithm 
+from utils import get_clicked_pos, heuristic, draw_grid
 
 # intialise Pygame and surface
 pygame.init()
@@ -19,6 +20,18 @@ class Node:
         self.total_rows = total_rows
         self.difference = difference
 
+    def set_state(self, state: str):
+        COLOUR_MAP = {
+            "checking": Colors.GREEN,
+            "checked": Colors.RED,
+            "path": Colors.BLUE,
+            "start": Colors.CYAN,
+            "end": Colors.MAGENTA,
+            "barrier": Colors.BLACK,
+            "reset": Colors.WHITE
+        }
+        self.colour = COLOUR_MAP[state]
+
     def draw(self, win: pygame.Surface):
         """Draws current node onto grid"""
         pygame.draw.rect(win, self.colour, (self.col * self.width, self.row * self.width + self.difference, self.width, self.width))
@@ -32,29 +45,11 @@ class Node:
     def checking(self):
         return self.colour == Colors.GREEN
     
-    def set_checked(self):
-        self.colour = Colors.RED
-
-    def set_checking(self):
-        self.colour = Colors.GREEN
-
     def get_coords(self):
         return (self.row, self.col)
     
-    def set_start(self):
-        self.colour = Colors.CYAN
-    
-    def set_end(self):
-        self.colour = Colors.MAGENTA
-        
-    def set_barrier(self):
-        self.colour = Colors.BLACK
-    
     def is_barrier(self):
         return self.colour == Colors.BLACK
-    
-    def reset(self):
-        self.colour = Colors.WHITE
 
     def get_children(self):
         return self.children
@@ -108,21 +103,6 @@ class Node:
 
     def __hash__(self):
         return hash((self.row, self.col))
-    
-
-def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int]) -> float:
-    """Calculates the heuristic Fscore for the selected node using Euclidean distance
-
-    Args:
-        node: Tuple containig nodes coordinates.
-        end: Tuple containing target nodes coordinates
-
-    Returns:
-        H score for current node
-    """
-    node_x, node_y = node_coords
-    end_x, end_y = end_coords
-    return math.sqrt((node_x - end_x) ** 2 + (node_y - end_y) ** 2)
 
 
 def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]:
@@ -145,7 +125,7 @@ def create_grid(grid_size: int, width: int, difference: int) -> List[List[Node]]
     return grid
 
 
-def create_path(came_from: Node, current: Node, draw: Callable[[], None]):
+def create_path(came_from: dict[Node], current: Node, draw: Callable[[], None]):
     """Loop through path elements and add them to array
 
     Args:
@@ -199,8 +179,8 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
 
         if current == end:
             create_path(came_from, end, draw)
-            end.set_end()
-            start.set_start()
+            end.set_state("end")
+            start.set_state("start")
             return True
         
         children = current.get_children()
@@ -223,32 +203,14 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
                     count += 1
                     open_set.put((f_score[child], count, child))
                     open_set_hash.add(child)
-                    child.set_checking()
+                    child.set_state("checking")
         
         draw()
 
         if current != start:
-            current.set_checked()
+            current.set_state("checked")
     
     return False
-    
-    
-def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
-    """Draws grid onto pygame window
-
-    Args:
-        rows: Amount of rows within the grid.
-        width: Width of the pygame window.
-        win: Pygame window.
-
-    Returns:
-        Lines that draw a grid on the pygame window
-    """
-    gap = width // rows
-    for i in range(rows):
-        pygame.draw.line(win, Colors.GREY, (0, (i * gap) + difference), (width, (i * gap) + difference))
-        for j in range(rows):
-            pygame.draw.line(win, Colors.GREY, (j * gap, difference), (j * gap, width+difference))
 
 
 def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
@@ -273,42 +235,11 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     pygame.display.update()
 
 
-def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple[int, int]:
-    """Gets the row and column of where the mouse has clicked.
-
-    Args:
-        pos: Mouse position, x and y.
-        rows: Rows within the grid.
-        width: Width of the pygame window.
-        difference: Vertical offset of the grid.
-
-    Returns:
-        Row and col of mouse position.
-    """
-    gap = width // rows
-    x, y = pos
-
-    if y < difference or x < 0 or x >= width:
-        return None, None  # Click outside grid
-
-    row = (y - difference) // gap
-    col = x // gap
-
-    if row >= rows or col >= rows:
-        return None, None  # Click outside grid
-
-    return row, col
-
-
 def calculate(width: int, win: pygame.Surface, difference: int, grid_size: int):
     """Main entry point for the A* visualization"""
-    grid = initialize_grid(grid_size, width, difference)
+    grid = create_grid(grid_size, width, difference)
     run_visualization_loop(grid, grid_size, win, width, difference)
     pygame.quit()
-
-def initialize_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]:
-    """Create and initialize the grid"""
-    return create_grid(grid_size, width, difference)
 
 def run_visualization_loop(grid: list[list[Node]], grid_size: int, win: pygame.Surface, 
                           width: int, difference: int) -> None:
@@ -331,6 +262,7 @@ def run_visualization_loop(grid: list[list[Node]], grid_size: int, win: pygame.S
             # Handle mouse and keyboard events
             running, grid, start, end = handle_input(event, grid, grid_size, start, end, width, difference)
 
+
 def handle_input(event, grid, grid_size, start, end, width, difference):
     """Process user input events"""
     # Handle mouse clicks
@@ -346,6 +278,7 @@ def handle_input(event, grid, grid_size, start, end, width, difference):
     
     return True, grid, start, end  # Keep running by default
 
+
 def handle_left_click(grid, grid_size, start, end, width, difference):
     """Process left mouse clicks to place start, end, and barriers"""
     pos = pygame.mouse.get_pos()
@@ -354,26 +287,28 @@ def handle_left_click(grid, grid_size, start, end, width, difference):
         node = grid[row][col]
         if not start and node != end:
             start = node
-            node.set_start()
+            node.set_state("start")
         elif not end and node != start:
             end = node
-            node.set_end()
+            node.set_state("end")
         elif node != start and node != end:
-            node.set_barrier()
+            node.set_state("barrier")
     return start, end
 
-def handle_right_click(grid, grid_size, start, end, width, difference):
+
+def handle_right_click(grid: list[list[Node]], grid_size: int, start: Node, end: Node, width: int, difference: int):
     """Process right mouse clicks to remove nodes"""
     pos = pygame.mouse.get_pos()
     row, col = get_clicked_pos(pos, grid_size, width, difference)
     if row is not None and col is not None:
         node = grid[row][col]
-        node.reset()
+        node.set_state("reset")
         if node == start:
             start = None
         elif node == end:
             end = None
     return start, end
+
 
 def handle_keyboard(event, grid, grid_size, start, end, width, difference):
     """Process keyboard inputs"""
@@ -389,24 +324,27 @@ def handle_keyboard(event, grid, grid_size, start, end, width, difference):
     
     return grid, start, end
 
+
 def clear_path_and_update_children(grid, grid_size, start, end):
     """Clear visualization nodes and update node connections"""
     for row in grid:
         for node in row:
             # Clear previous path, checking, and checked nodes
             if (node.colour == Colors.BLUE or node.colour == Colors.RED or node.colour == Colors.GREEN):
-                node.reset()
+                node.set_state("reset")
             
             # Update children for all nodes
             node.update_children(grid, grid_size)
     
+
     # Restore start and end visuals
     if start:
-        start.set_start()
+        start.set_state("start")
     if end:
-        end.set_end()
+        end.set_state("end")
     
     return grid
+
 
 def run_algorithm(grid, start, end, grid_size, width, difference):
     """Execute the A* algorithm if start and end are defined"""

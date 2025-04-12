@@ -73,14 +73,17 @@ def main():
                     is_eight_directional = not is_eight_directional
                 
             # Right click handling
-            if pygame.mouse.get_pressed()[2]:  # Right click
-                row, col = get_clicked_pos(pos, Algorithm.DEFAULT_GRID_SIZE,
+            if pygame.mouse.get_pressed()[2] and not algorithm_active:  # Right click
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_pos(pos, Algorithm.DEFAULT_GRID_SIZE, 
                                         Display.GRID_WIDTH, Display.DIFFERENCE)
                 if row is not None and col is not None:
                     node = grid[row][col]
                     node.set_state("reset")
-                    if node == start: start = None
-                    elif node == end: end = None
+                    if node == start: 
+                        start = None
+                    elif node == end: 
+                        end = None
             
             # Keyboard handling
             if event.type == pygame.KEYDOWN:

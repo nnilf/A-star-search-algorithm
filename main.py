@@ -51,7 +51,7 @@ def main():
                 running = False
             
             # Mouse handling
-            if pygame.mouse.get_pressed()[0]:  # Left click
+            if pygame.mouse.get_pressed()[0] and not algorithm_active:  # Left click
                 pos = pygame.mouse.get_pos()
 
                 # Left click handling
@@ -59,7 +59,7 @@ def main():
                                         Display.GRID_WIDTH, Display.DIFFERENCE)
                 if row is not None and col is not None:
                     node = grid[row][col]
-                    if not start and node != end:
+                    if not start and node != end and not algorithm_active:
                         start = node
                         node.set_state("start")
                     elif not end and node != start:
@@ -87,12 +87,12 @@ def main():
             
             # Keyboard handling
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_c:
+                if event.key == pygame.K_c and not algorithm_active:
                     start = end = None
                     grid = create_grid(Algorithm.DEFAULT_GRID_SIZE, Display.GRID_WIDTH, Display.DIFFERENCE)
                     final_time = 0.0
 
-                elif event.key == pygame.K_SPACE and start and end:
+                elif event.key == pygame.K_SPACE and start and end and not algorithm_active:
 
                     timer_start = time.time()
                     timer_active = True

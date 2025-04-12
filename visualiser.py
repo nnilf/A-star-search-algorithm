@@ -66,7 +66,7 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
 
     # Position in top right (adjust coordinates as needed)
     text_surface = font.render(instruction_text, True, Colors.RED)
-    text_rect = text_surface.get_rect(topright=(width -145, 10))
+    text_rect = text_surface.get_rect(topright=(width -95, 15))
     win.blit(text_surface, text_rect)
 
     # Draw instructions on the screen
@@ -81,13 +81,13 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     for i, line in enumerate(instructions):
         if i >= 3:
             instruction_text = font.render(line, True, Colors.BLACK)
-            win.blit(instruction_text, (450, 40 + (i-3) * 25))
+            win.blit(instruction_text, (500, 45 + (i-3) * 25))
         else:
             instruction_text = font.render(line, True, Colors.BLACK)
-            win.blit(instruction_text, (200, 40 + i * 25))
+            win.blit(instruction_text, (250, 45 + i * 25))
 
     timer_text = font.render(f"Time Elapsed: {elapsed_time:.2f}s", True, Colors.BLACK)
-    win.blit(timer_text, (200, 10))
+    win.blit(timer_text, (250, 15))
 
     pygame.display.flip()
 

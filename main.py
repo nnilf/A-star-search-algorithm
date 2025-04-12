@@ -87,6 +87,7 @@ def main():
                 if event.key == pygame.K_c:
                     start = end = None
                     grid = create_grid(Algorithm.DEFAULT_GRID_SIZE, Display.GRID_WIDTH, Display.DIFFERENCE)
+                    final_time = 0.0
 
                 elif event.key == pygame.K_SPACE and start and end:
 

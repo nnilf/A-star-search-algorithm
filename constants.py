@@ -19,7 +19,7 @@ class Colors:
 
 @dataclass
 class Display:
-    WINDOW_HEIGHT = 920
+    WINDOW_HEIGHT = 940
     GRID_WIDTH = 792
     DIFFERENCE = WINDOW_HEIGHT - GRID_WIDTH
 

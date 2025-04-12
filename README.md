@@ -84,6 +84,12 @@ python A_star_algorithm_pygame.py
 ```
 
 <!-- Add screenshots or specific use case examples here -->
+![alt text](image.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+![alt text](image-6.png)
 ![Step 1](images/image-1.png)
 ![Step 2](images/image-2.png)
 ![Step 3](images/image-3.png)

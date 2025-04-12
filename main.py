@@ -1,6 +1,7 @@
 import pygame
+import time
 from constants import Display, Algorithm
-from visualiser import create_grid, draw, get_clicked_pos, clear_path_and_update_children
+from visualiser import create_grid, draw, get_clicked_pos, clear_path_and_update_children, check_toggle_button_click
 from A_star_algorithm import algorithm
 
 def main():
@@ -10,11 +11,22 @@ def main():
     
     grid = create_grid(Algorithm.DEFAULT_GRID_SIZE, Display.GRID_WIDTH, Display.DIFFERENCE)
     start, end = None, None
+    is_eight_directional = True  # Initial setting: 8-directional (Euclidean)
+    pathfinding_time = 0.0
+    timer_active = False
+    timer_start = 0
+    final_time = None  
 
     running = True
     while running:
-        draw(grid, Algorithm.DEFAULT_GRID_SIZE, WIN, Display.GRID_WIDTH, Display.DIFFERENCE)
-        
+
+        current_time = time.time()
+        if timer_active:
+            pathfinding_time = current_time - timer_start
+
+        display_time = final_time if final_time is not None else pathfinding_time
+
+        draw(grid, Algorithm.DEFAULT_GRID_SIZE, WIN, Display.GRID_WIDTH, Display.DIFFERENCE, is_eight_directional, display_time)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -33,6 +45,10 @@ def main():
                         node.set_state("end")
                     elif node != start and node != end:
                         node.set_state("barrier")
+
+                # Handle toggle button click
+                if check_toggle_button_click(pos):
+                    is_eight_directional = not is_eight_directional
             
             if pygame.mouse.get_pressed()[2]:  # Right click
                 pos = pygame.mouse.get_pos()
@@ -50,8 +66,21 @@ def main():
                     grid = create_grid(Algorithm.DEFAULT_GRID_SIZE, Display.GRID_WIDTH, Display.DIFFERENCE)
 
                 elif event.key == pygame.K_SPACE and start and end:
-                    grid = clear_path_and_update_children(grid, Algorithm.DEFAULT_GRID_SIZE, start, end)
-                    algorithm(start, end, grid, lambda: draw(grid, Algorithm.DEFAULT_GRID_SIZE, WIN, Display.GRID_WIDTH, Display.DIFFERENCE))
+
+                    timer_start = time.time()
+                    timer_active = True
+                    final_time = None
+                    pathfinding_time = 0.0
+
+                    grid = clear_path_and_update_children(grid, Algorithm.DEFAULT_GRID_SIZE, start, end, is_eight_directional)
+                    path_found = algorithm(start, end, grid, 
+                                           lambda: draw(grid, Algorithm.DEFAULT_GRID_SIZE, WIN, Display.GRID_WIDTH, Display.DIFFERENCE,
+                                             is_eight_directional, final_time if final_time is not None else (time.time() - timer_start))
+                                             , is_eight_directional)
+
+                    # If path was found, store the final time
+                    if path_found:
+                        final_time = time.time() - timer_start
 
     pygame.quit()
 

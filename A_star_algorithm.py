@@ -4,7 +4,7 @@ from typing import Callable
 from Node import Node
 
 
-def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None]) -> bool:
+def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None], is_eight_directional: bool) -> bool:
     """A* path finding algorithm.
 
     Args:
@@ -27,7 +27,7 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
     g_score = {node: float("inf") for row in grid for node in row}
     g_score[start] = 0
     f_score = {node: float("inf") for row in grid for node in row}
-    f_score[start] = heuristic(start.get_coords(), end.get_coords())
+    f_score[start] = heuristic(start.get_coords(), end.get_coords(), is_eight_directional)
 
     open_set_hash = {start}
 
@@ -41,6 +41,8 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
             end.set_state("end")
             start.set_state("start")
             return True
+        
+        draw()
         
         children = current.get_children()
 
@@ -57,7 +59,7 @@ def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[],
             if tentative_g < g_score[child]:
                 came_from[child] = current
                 g_score[child] = tentative_g
-                f_score[child] = tentative_g + heuristic(child.get_coords(), end.get_coords())
+                f_score[child] = tentative_g + heuristic(child.get_coords(), end.get_coords(), is_eight_directional)
                 if child not in open_set_hash:
                     count += 1
                     open_set.put((f_score[child], count, child))
@@ -89,8 +91,14 @@ def create_path(came_from: dict[Node], current: Node, draw: Callable[[], None]):
         draw()
 
 
-def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int]) -> float:
+def heuristic(node_coords: tuple[int, int], end_coords: tuple[int, int], is_eight_directional: bool) -> float:
     """Calculates the heuristic Fscore for the selected node using Euclidean distance"""
     node_x, node_y = node_coords
     end_x, end_y = end_coords
-    return math.sqrt((node_x - end_x) ** 2 + (node_y - end_y) ** 2)
+    
+    if is_eight_directional:
+        # Using Euclidean distance for 8-directional movement
+        return math.sqrt((node_x - end_x) ** 2 + (node_y - end_y) ** 2)
+    else:
+        # Using Manhattan distance for 4-directional movement
+        return abs(node_x - end_x) + abs(node_y - end_y)

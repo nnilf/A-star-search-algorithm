@@ -42,7 +42,7 @@ class Node:
     def get_children(self):
         return self.children
     
-    def update_children(self, grid: list[list["Node"]], grid_size: int) -> None:
+    def update_children(self, grid: list[list["Node"]], grid_size: int, is_eight_directional: bool ) -> None:
         """Gets the children of current element which is all the Nodes next to the current node.
 
         Args:
@@ -62,24 +62,25 @@ class Node:
             nx, ny = self.row + dx, self.col + dy
             if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
                 self.children.append(grid[nx][ny])
-        
-        # diagonal directions 
-        diagonal_directions = [(-1,-1), (1,-1), (1,1), (-1,1)]
-        
-        # Check diagonal directions with corner validation
-        for dx, dy in diagonal_directions:
-            nx, ny = self.row + dx, self.col + dy
+
+        if is_eight_directional:
+            # diagonal directions 
+            diagonal_directions = [(-1,-1), (1,-1), (1,1), (-1,1)]
             
-            # First ensure diagonal position is valid and not a barrier
-            if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
-                # Check that we're not cutting across a corner
-                # Both adjacent cells must be passable for diagonal movement to be allowed
-                adjacent1 = grid[self.row][ny]  # Horizontally adjacent
-                adjacent2 = grid[nx][self.col]  # Vertically adjacent
+            # Check diagonal directions with corner validation
+            for dx, dy in diagonal_directions:
+                nx, ny = self.row + dx, self.col + dy
                 
-                # Only allow diagonal movement if at least one adjacent cell is passable
-                if not adjacent1.is_barrier() or not adjacent2.is_barrier():
-                    self.children.append(grid[nx][ny])
+                # First ensure diagonal position is valid and not a barrier
+                if 0 <= nx < grid_size and 0 <= ny < grid_size and not grid[nx][ny].is_barrier():
+                    # Check that we're not cutting across a corner
+                    # Both adjacent cells must be passable for diagonal movement to be allowed
+                    adjacent1 = grid[self.row][ny]  # Horizontally adjacent
+                    adjacent2 = grid[nx][self.col]  # Vertically adjacent
+                    
+                    # Only allow diagonal movement if at least one adjacent cell is passable
+                    if not adjacent1.is_barrier() or not adjacent2.is_barrier():
+                        self.children.append(grid[nx][ny])
 
     def __lt__(self, other: "Node"):
         return True

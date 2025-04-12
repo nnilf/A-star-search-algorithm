@@ -1,5 +1,6 @@
 import pygame
-from constants import Colors
+import time
+from constants import Colors, Display
 from Node import Node
 
 def create_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]:
@@ -13,6 +14,16 @@ def create_grid(grid_size: int, width: int, difference: int) -> list[list[Node]]
     return grid
 
 
+def draw_toggle_button(win: pygame.Surface, is_eight_directional: bool):
+    """Draws a button on the screen to toggle between 4 and 8 directional movement."""
+    pygame.draw.rect(win, Colors.GREY, (10, 10, 185, 110))
+    font = pygame.font.SysFont("Arial", 24)
+    text = font.render(f"Toggle Movement:", True, Colors.WHITE)
+    movement = font.render(f"{'Euclidean' if is_eight_directional else 'Manhattan'} Distance", True, Colors.WHITE)
+    win.blit(text, (15, 20))
+    win.blit(movement, (15, 80))
+
+
 def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
     """Draws grid onto pygame window"""
     gap = width // rows
@@ -22,7 +33,7 @@ def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
             pygame.draw.line(win, Colors.GREY, (j * gap, difference), (j * gap, width+difference))
 
 
-def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int):
+def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int, is_eight_directional: bool, elapsed_time: float):
     """Draws all nodes and updated pygame display from changes.
 
     Args:
@@ -41,6 +52,32 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
             node.draw(win)
 
     draw_grid(rows, width, win, difference)
+
+    draw_toggle_button(win, is_eight_directional)
+
+    # Draw timer on the screen
+    font = pygame.font.SysFont("arial", 20)
+
+    # Draw instructions on the screen
+    instructions = [
+        "Instructions:",
+        "Space - Start Pathfinding",
+        "C - Clear Grid",
+        "Left Click - Set Start/End/Barrier",
+        "Right Click - Reset Node",
+        "Toggle Button - Switch Movement"
+    ]
+    for i, line in enumerate(instructions):
+        if i >= 3:
+            instruction_text = font.render(line, True, Colors.BLACK)
+            win.blit(instruction_text, (450, 40 + (i-3) * 25))
+        else:
+            instruction_text = font.render(line, True, Colors.BLACK)
+            win.blit(instruction_text, (200, 40 + i * 25))
+
+    timer_text = font.render(f"Time Elapsed: {elapsed_time:.2f}s", True, Colors.BLACK)
+    win.blit(timer_text, (200, 10))
+
     pygame.display.update()
 
 
@@ -61,13 +98,13 @@ def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple
     return row, col
 
 
-def clear_path_and_update_children(grid, grid_size, start, end):
+def clear_path_and_update_children(grid, grid_size, start, end, is_eight_directional):
     """Clear visualization nodes and update node connections"""
     for row in grid:
         for node in row:
             if (node.colour == Colors.BLUE or node.colour == Colors.RED or node.colour == Colors.GREEN):
                 node.set_state("reset")
-            node.update_children(grid, grid_size)
+            node.update_children(grid, grid_size, is_eight_directional)
     
     if start:
         start.set_state("start")
@@ -75,3 +112,9 @@ def clear_path_and_update_children(grid, grid_size, start, end):
         end.set_state("end")
     
     return grid
+
+
+def check_toggle_button_click(pos: tuple) -> bool:
+    """Checks if the toggle button is clicked"""
+    button_rect = pygame.Rect(10, 10, 185, 110)
+    return button_rect.collidepoint(pos)

@@ -33,7 +33,7 @@ def draw_grid(rows: int, width: int, win: pygame.Surface, difference: int):
             pygame.draw.line(win, Colors.GREY, (j * gap, difference), (j * gap, width+difference))
 
 
-def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int, is_eight_directional: bool, elapsed_time: float):
+def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, difference: int, is_eight_directional: bool, elapsed_time: float, start: Node = None, end: Node = None):
     """Draws all nodes and updated pygame display from changes.
 
     Args:
@@ -58,6 +58,17 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     # Draw timer on the screen
     font = pygame.font.SysFont("arial", 20)
 
+    instruction_text = ""
+    if start is None:
+        instruction_text = "Click to place START node"
+    elif end is None:
+        instruction_text = "Click to place END node"
+
+    # Position in top right (adjust coordinates as needed)
+    text_surface = font.render(instruction_text, True, Colors.RED)
+    text_rect = text_surface.get_rect(topright=(width -145, 10))
+    win.blit(text_surface, text_rect)
+
     # Draw instructions on the screen
     instructions = [
         "Instructions:",
@@ -78,7 +89,7 @@ def draw(grid: list[list[Node]], rows: int, win: pygame.Surface, width: int, dif
     timer_text = font.render(f"Time Elapsed: {elapsed_time:.2f}s", True, Colors.BLACK)
     win.blit(timer_text, (200, 10))
 
-    pygame.display.update()
+    pygame.display.flip()
 
 
 def get_clicked_pos(pos: tuple, rows: int, width: int, difference: int) -> tuple[int, int]:

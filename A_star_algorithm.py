@@ -4,72 +4,70 @@ from typing import Callable
 from Node import Node
 
 
-def algorithm(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None], is_eight_directional: bool) -> bool:
-    """A* path finding algorithm.
+# Persistent algorithm state
+algorithm_state = {
+    'open_set': None,
+    'came_from': None,
+    'g_score': None,
+    'f_score': None,
+    'open_set_hash': None,
+    'count': 0,
+    'initialized': False
+}
 
-    Args:
-        start: Start node.
-        end: End node.
-        grid: Grid of nodes.
-        draw: Function to update the GUI/visualizer.
+def init_algorithm(start: Node, end: Node, grid: list[list[Node]], is_eight_directional: bool):
+    """Initialize or reset algorithm state"""
+    algorithm_state['open_set'] = PriorityQueue()
+    algorithm_state['open_set'].put((0, 0, start))
+    algorithm_state['came_from'] = {}
+    algorithm_state['g_score'] = {node: float("inf") for row in grid for node in row}
+    algorithm_state['g_score'][start] = 0
+    algorithm_state['f_score'] = {node: float("inf") for row in grid for node in row}
+    algorithm_state['f_score'][start] = heuristic(start.get_coords(), end.get_coords(), is_eight_directional)
+    algorithm_state['open_set_hash'] = {start}
+    algorithm_state['count'] = 0
+    algorithm_state['initialized'] = True
 
-    Returns:
-        True if path is found, False otherwise.
-    """
-    # Early return for invalid inputs
-    if not start or not end:
-        return False
-
-    count = 0
-    open_set = PriorityQueue()
-    open_set.put((0, count, start))
-    came_from = {}
-    g_score = {node: float("inf") for row in grid for node in row}
-    g_score[start] = 0
-    f_score = {node: float("inf") for row in grid for node in row}
-    f_score[start] = heuristic(start.get_coords(), end.get_coords(), is_eight_directional)
-
-    open_set_hash = {start}
-
-    while not open_set.empty():
-
-        current = open_set.get()[2]
-        open_set_hash.remove(current)
-
-        if current == end:
-            create_path(came_from, end, draw)
-            end.set_state("end")
-            start.set_state("start")
-            return True
+def algorithm_step(start: Node, end: Node, grid: list[list[Node]], draw: Callable[[], None], is_eight_directional: bool) -> bool:
+    """Execute one step of A* algorithm"""
+    if not algorithm_state['initialized']:
+        init_algorithm(start, end, grid, is_eight_directional)
+    
+    if algorithm_state['open_set'].empty():
+        return True
+    
+    # Process current node
+    current = algorithm_state['open_set'].get()[2]
+    algorithm_state['open_set_hash'].remove(current)
+    
+    if current == end:
+        create_path(algorithm_state['came_from'], end, draw)
+        end.set_state("end")
+        start.set_state("start")
+        return True
+    
+    # Process neighbors
+    for child in current.get_children():
+        dx = abs(child.row - current.row)
+        dy = abs(child.col - current.col)
+        move_cost = math.sqrt(2) if dx + dy == 2 else 1
+        tentative_g = algorithm_state['g_score'][current] + move_cost
         
-        draw()
-        
-        children = current.get_children()
-
-        for child in children:
-
-            # Calculate whether this is a diagonal move
-            dx = abs(child.row - current.row)
-            dy = abs(child.col - current.col)
-            # Diagonal moves cost more
-            move_cost = math.sqrt(2) if dx + dy == 2 else 1
-
-            tentative_g = g_score[current] + move_cost
-
-            if tentative_g < g_score[child]:
-                came_from[child] = current
-                g_score[child] = tentative_g
-                f_score[child] = tentative_g + heuristic(child.get_coords(), end.get_coords(), is_eight_directional)
-                if child not in open_set_hash:
-                    count += 1
-                    open_set.put((f_score[child], count, child))
-                    open_set_hash.add(child)
-                    child.set_state("checking")
-        
-        draw()
-
-        if current != start:
-            current.set_state("checked")
+        if tentative_g < algorithm_state['g_score'][child]:
+            algorithm_state['came_from'][child] = current
+            algorithm_state['g_score'][child] = tentative_g
+            algorithm_state['f_score'][child] = tentative_g + heuristic(
+                child.get_coords(), end.get_coords(), is_eight_directional)
+            
+            if child not in algorithm_state['open_set_hash']:
+                algorithm_state['count'] += 1
+                algorithm_state['open_set'].put((algorithm_state['f_score'][child], 
+                                               algorithm_state['count'], child))
+                algorithm_state['open_set_hash'].add(child)
+                child.set_state("checking")
+    
+    if current != start:
+        current.set_state("checked")
     
     return False
 

@@ -8,6 +8,7 @@ class Node:
         self.col = y
         self.children = []
         self.colour = Colors.WHITE
+        self.last_state = None
         self.total_rows = total_rows
         self.difference = difference
 
@@ -21,11 +22,18 @@ class Node:
             "barrier": Colors.BLACK,
             "reset": Colors.WHITE
         }
-        self.colour = COLOUR_MAP[state]
+        new_color = COLOUR_MAP[state]
+        if self.colour != new_color:  # Only update if changed
+            self.colour = new_color
+            self.last_state = None
 
     def draw(self, win: pygame.Surface):
         """Draws current node onto grid"""
-        pygame.draw.rect(win, self.colour, (self.col * self.width, self.row * self.width + self.difference, self.width, self.width))
+        pygame.draw.rect(win, self.colour, 
+                    (self.col * self.width, 
+                     self.row * self.width + self.difference, 
+                     self.width, self.width))
+        self.last_state = self.colour
 
     def checked(self):
         return self.colour == Colors.RED

@@ -5,6 +5,11 @@ from visualiser import create_grid, draw, get_clicked_pos, clear_path_and_update
 from A_star_algorithm import algorithm_step, init_algorithm
 
 def main():
+    """Main code loop to run the higher under functionality of the program
+
+        Returns:
+            visual interface
+    """
     pygame.init()
     WIN = pygame.display.set_mode((Display.GRID_WIDTH, Display.WINDOW_HEIGHT))
     pygame.display.set_caption("A* Path Finding Algorithm")
